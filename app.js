@@ -47,14 +47,18 @@ connection.connect((err) => {
     });
   });
 
-
   app.get('/files/:id', (req, res) => {
     const sql = "SELECT file_name, filedata FROM files WHERE id = ?";
     connection.query(sql, [req.params.id], (err, results) => {
       if (err) throw err;
       if (results.length > 0) {
-        res.setHeader('Content-Disposition', 'attachment; filename=' + results[0].filename);
-        res.send(results[0].filedata);
+        const filedata = results[0].filedata;
+        const filename = results[0].file_name;
+        const mimetype = path.extname(filename).toLowerCase() === '.mp4' ? 'video/mp4' : 'application/octet-stream';
+  
+        res.setHeader('Content-Disposition', `inline; filename=${filename}`);
+        res.setHeader('Content-Type', mimetype);
+        res.send(filedata);
       } else {
         res.status(404).send('File not found');
       }
